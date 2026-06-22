@@ -100,5 +100,14 @@ if submitted:
             st.markdown(badge)
             st.write(idea.get("rationale", ""))
 
-    st.divider()
+    # ── Source Posts ───────────────────────────────────────────────
+    st.subheader("🔗 Source Posts")
+    with st.expander(f"View all {len(posts)} fetched posts from r/{subreddit}"):
+        for p in sorted(posts, key=lambda x: x["score"], reverse=True):
+            st.markdown(
+                f"[{p['title']}]({p['url']})  \n"
+                f"`{p['date']}` · ⬆ {p['score']} · 💬 {p['comments']}"
+            )
+            st.divider()
+
     st.caption("Powered by Reddit public data · Claude AI · Built for Yellow 🌼")
