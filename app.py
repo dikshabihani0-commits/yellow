@@ -68,6 +68,9 @@ if submitted:
             st.write(t.get("description", ""))
             if t.get("example"):
                 st.caption(f"Example: *\"{t['example']}\"*")
+            idx = t.get("post_index")
+            if idx and 1 <= idx <= len(posts):
+                st.markdown(f"[View source post ↗]({posts[idx - 1]['url']})")
 
     # ── Sentiment ─────────────────────────────────────────────────
     st.subheader("💬 Community Sentiment")

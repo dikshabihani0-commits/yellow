@@ -42,7 +42,7 @@ Analyse these posts and return a JSON object with EXACTLY these keys:
 
 {{
   "trending_topics": [
-    {{"topic": "...", "description": "...", "post_count": N, "example": "..."}}
+    {{"topic": "...", "description": "...", "post_count": N, "example": "...", "post_index": N}}
   ],
   "sentiment": {{
     "positive_pct": N,
@@ -58,7 +58,7 @@ Analyse these posts and return a JSON object with EXACTLY these keys:
 }}
 
 Rules:
-- trending_topics: top 5 themes by frequency, each with a count estimate and a real example title from the posts
+- trending_topics: top 5 themes by frequency, each with a count estimate, a real example title from the posts, and post_index (the 1-based number of that post from the list above)
 - sentiment: percentages must sum to 100; summary is 1-2 sentences
 - pain_points: top 5 specific frustrations or struggles mentioned
 - questions_asked: top 5 questions the community is asking
