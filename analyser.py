@@ -1,6 +1,6 @@
 import json
 import os
-from groq import Groq, NotFoundError, APIStatusError
+from groq import Groq, NotFoundError, BadRequestError, APIStatusError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,8 +9,9 @@ load_dotenv()
 MODELS = [
     os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
     "llama-3.1-8b-instant",
-    "openai/gpt-oss-20b",
     "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
 ]
 
 _client = None
@@ -89,14 +90,23 @@ Rules:
     client = _get_client()
     last_error = None
     for model in MODELS:
+        kwargs = {}
+        if model.startswith("openai/gpt-oss"):
+            # reasoning models can spend the whole budget thinking and return nothing
+            kwargs["reasoning_effort"] = "low"
         try:
             response = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 response_format={"type": "json_object"},
+                **kwargs,
             )
             return json.loads(response.choices[0].message.content)
         except NotFoundError as e:  # model retired or not available to this key
+            last_error = e
+        except BadRequestError as e:  # model failed to produce valid JSON
+            last_error = e
+        except json.JSONDecodeError as e:
             last_error = e
     raise last_error
