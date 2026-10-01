@@ -1,9 +1,17 @@
 import json
 import os
-from groq import Groq
+from groq import Groq, NotFoundError
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Tried in order; falls through when Groq returns 404 model_not_found.
+MODELS = [
+    os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+    "llama-3.1-8b-instant",
+    "openai/gpt-oss-20b",
+    "openai/gpt-oss-120b",
+]
 
 _client = None
 
@@ -66,11 +74,16 @@ Rules:
 - Return ONLY valid JSON with no markdown fences, no commentary."""
 
     client = _get_client()
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        response_format={"type": "json_object"},
-    )
-
-    return json.loads(response.choices[0].message.content)
+    last_error = None
+    for model in MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+                response_format={"type": "json_object"},
+            )
+            return json.loads(response.choices[0].message.content)
+        except NotFoundError as e:  # model retired or not available to this key
+            last_error = e
+    raise last_error

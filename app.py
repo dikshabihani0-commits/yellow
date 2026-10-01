@@ -43,7 +43,7 @@ if submitted:
         st.warning(f"No posts found in r/{subreddit} from the last {days} days.")
         st.stop()
 
-    with st.spinner(f"Analysing {len(posts)} posts with AI..."):
+    with st.spinner(f"Analysing {len(posts)} posts with AI (v2)..."):
         try:
             analysis = analyse_posts(posts, subreddit)
         except ValueError as e:
