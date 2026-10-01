@@ -1,6 +1,6 @@
 import json
 import os
-from groq import Groq, NotFoundError
+from groq import Groq, NotFoundError, APIStatusError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,15 +30,28 @@ def analyse_posts(posts: list[dict], subreddit: str) -> dict:
     if not posts:
         raise ValueError("No posts to analyse.")
 
+    # Groq's free tier caps requests at ~8000 tokens/minute (input + output),
+    # so keep the prompt small and halve it again if Groq still says 413.
+    n_posts = 60
+    while True:
+        try:
+            return _analyse(posts[:n_posts], len(posts), subreddit)
+        except APIStatusError as e:
+            if e.status_code != 413 or n_posts <= 15:
+                raise
+            n_posts //= 2
+
+
+def _analyse(posts: list[dict], total: int, subreddit: str) -> dict:
     post_snippets = []
-    for i, p in enumerate(posts[:150], 1):
-        body_preview = (p["body"] or "")[:200].replace("\n", " ").strip()
+    for i, p in enumerate(posts, 1):
+        body_preview = (p["body"] or "")[:120].replace("\n", " ").strip()
         post_snippets.append(f"{i}. [{p['date']}] {p['title']}\n   {body_preview}")
 
     posts_text = "\n\n".join(post_snippets)
 
     prompt = f"""You are a content strategist for Yellow, a women's health brand focused on menopause support.
-You have just read {len(posts)} recent posts from the Reddit community r/{subreddit}.
+You have just read {total} recent posts from the Reddit community r/{subreddit}.
 
 Here are the posts (title + excerpt):
 
