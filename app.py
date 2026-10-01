@@ -43,7 +43,7 @@ if submitted:
         st.warning(f"No posts found in r/{subreddit} from the last {days} days.")
         st.stop()
 
-    with st.spinner(f"Analysing {len(posts)} posts with Claude AI..."):
+    with st.spinner(f"Analysing {len(posts)} posts with AI..."):
         try:
             analysis = analyse_posts(posts, subreddit)
         except ValueError as e:
@@ -68,7 +68,10 @@ if submitted:
             st.write(t.get("description", ""))
             if t.get("example"):
                 st.caption(f"Example: *\"{t['example']}\"*")
-            idx = t.get("post_index")
+            try:
+                idx = int(t.get("post_index"))
+            except (TypeError, ValueError):
+                idx = None
             if idx and 1 <= idx <= len(posts):
                 st.markdown(f"[View source post ↗]({posts[idx - 1]['url']})")
 
